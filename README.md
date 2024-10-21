@@ -1,2 +1,3 @@
 # jobman
-Background jobs for Go applications
+
+Easy and powerful background jobs for Go applications.

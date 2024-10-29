@@ -5,12 +5,11 @@ import (
 	"time"
 )
 
-// DefaultPooler pools the storage for jobs every six hours
 type defaultPooler struct {
-	s storage
+	s Backend
 }
 
-func (pooler *defaultPooler) Pool(p pool) {
+func (pooler *defaultPooler) Pool(p JobPool) {
 	for {
 		time.Sleep(time.Minute)
 		log.Print("Looking for jobs")

@@ -10,11 +10,15 @@ import (
 type Job interface {
 	// Retrieve job type
 	Type() string
+
 	// Retrieve Job data
 	Payload() any
+
+	Options() *JobOptions
 }
 
-// TimedJob is a job that shouldn't be worked on immediately
+// TimedJob is a job that shouldn't be worked on immediately. Only Timed jobs will be
+// persisted in an external storage.
 type TimedJob interface {
 	Job
 
@@ -24,47 +28,41 @@ type TimedJob interface {
 	// Mark job as complete after it has been handled. Persistent jobs needs a way to be marked as complete
 	MarkCompleted() error
 
-	ID() int
-}
-
-type JobResult interface {
-	Result() (any, error)
+	// Timed jobs require an identity.
+	ID() any
 }
 
 // Pooler searches some job storage interface internal to it and forwards every job it finds to the job pool
 type Pooler interface {
-	Pool(p pool)
+	Pool(p JobPool)
 }
 
-type storage interface {
-	Save(job *TimedJob) error
-	FindDue() ([]TimedJob, error)
-	MarkComplete(job TimedJob) error
-}
-
-var dbHandler storage
+var storage Backend
 
 // handler is a function responsible for processing due jobs.
 // TODO: Require handlers to take a context object where errors can be reported
 type handler func(job Job) error
 
-type pool chan Job
+type JobPool chan Job
 
-var jobPool pool
+var jobPool JobPool
 
-var handlers map[string][]handler = make(map[string][]handler)
+var jobHandlers map[string][]handler = make(map[string][]handler)
 
 // RegisterHandler registers a function that should be called when job of jobType needs to be processed.
-func RegisterHandler(jobType string, handler handler) {
-	if handlerExistsForJob(jobType, handler) {
-		return
-	}
+func RegisterHandler(jobType string, handlers ...handler) {
+	for _, h := range handlers {
 
-	handlers[jobType] = append(handlers[jobType], handler)
+		if handlerExistsForJob(jobType, h) {
+			continue
+		}
+
+		jobHandlers[jobType] = append(jobHandlers[jobType], h)
+	}
 }
 
 func handlerExistsForJob(job string, h handler) bool {
-	handlers, ok := handlers[job]
+	handlers, ok := jobHandlers[job]
 	if !ok {
 		return false
 	}
@@ -88,7 +86,7 @@ func WorkOn(job Job) {
 }
 
 // TODO: Determine what to do with errors
-func initWorkers(p pool) {
+func initWorkers(p JobPool) {
 	workerSize := 5
 	for i := 0; i < workerSize; i++ {
 		go worker(p)
@@ -100,25 +98,38 @@ func initializeNewJobHandlers() {
 	RegisterHandler(NEWJOBTYPE, newTimedJobHandler)
 }
 
-func getJobPool() pool {
+func getJobPool() JobPool {
 	if jobPool != nil {
 		return jobPool
 	}
 
-	jobPool = make(pool, 5)
+	jobPool = make(JobPool, 5)
 	return jobPool
 }
 
-func StartWork(s storage) {
-	dbHandler = s
-	log.Print("Initializing job pool")
+// Init sets up Jobman with default options
+// namely - 5 workers, no pooler, and no backend.
+// TimedJob is disabled when jobman is initialized with default options. Sending timed jobs
+// will cause a panic.
+func Init() {
 	jpool := getJobPool()
-	log.Print("Starting workers")
 	initWorkers(jpool)
-	log.Print("Starting default job handlers")
 	initializeNewJobHandlers()
-	log.Print("Starting default job pooler")
-	pooler := defaultPooler{s}
-	go pooler.Pool(jpool)
-	log.Print("Job man has been initialized and is now working.")
+}
+
+func InitWithOptions(options SetupConfig) {
+	if options.Backend == nil {
+		log.Fatal("Backend must be provided when initializing job with options")
+	}
+	storage = options.Backend
+	jpool := getJobPool()
+	initWorkers(jpool)
+	initializeNewJobHandlers()
+	if options.Pooler != nil {
+		pooler := *options.Pooler
+		go pooler.Pool(jpool)
+	} else {
+		pooler := defaultPooler{options.Backend}
+		go pooler.Pool(jpool)
+	}
 }

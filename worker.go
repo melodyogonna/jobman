@@ -3,7 +3,7 @@ package jobman
 import "log"
 
 // Worker receives jobs from job pool channel and passes it over to handlers subscribed to such pools.
-func worker(jobPool pool) {
+func worker(jobPool JobPool) {
 	for {
 		job := <-jobPool
 		jobType := job.Type()

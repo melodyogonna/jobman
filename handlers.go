@@ -2,6 +2,7 @@ package jobman
 
 import (
 	"errors"
+	"log"
 	"time"
 )
 
@@ -33,6 +34,9 @@ func newTimedJobHandler(job Job) error {
 	if !ok {
 		return nil
 	}
+	if storage == nil {
+		log.Fatal("Jobman is not initialized with a backend. Please configure jobman with a backend to enable timed jobs.")
+	}
 
 	jobDue := timedJob.In()
 	now := time.Now()
@@ -50,7 +54,7 @@ func newTimedJobHandler(job Job) error {
 }
 
 func saveJob(job TimedJob) error {
-	err := dbHandler.Save(&job)
+	err := storage.Save(&job)
 	if err != nil {
 		return err
 	}

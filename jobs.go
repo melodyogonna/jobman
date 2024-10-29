@@ -18,10 +18,14 @@ func (job newJob) Payload() any {
 	return job.data
 }
 
-// GenericJob is a default without any strong typing. It accepts all values and is scheduled to get handled immediately.
+func (job newJob) Options() *JobOptions {
+	return nil
+}
+
 type GenericJob struct {
 	JobType string
-	Data    any // This should be JSON serializable if we intend to save this in DB
+	Data    any
+	Opts    *JobOptions
 }
 
 func (job GenericJob) Type() string {
@@ -32,16 +36,34 @@ func (job GenericJob) Payload() any {
 	return job.Data
 }
 
+func (job GenericJob) Options() *JobOptions {
+	return job.Opts
+}
+
 // GenericTimedJob is a default job that shouldn't get handled immediately. We need to enforce persistence when dealing with Timed jobs, so
 // It requires a way to mark it as complete.
 type GenericTimedJob struct {
-	GenericJob
-	Id   int
-	When time.Time
+	JobType string
+	Data    any // This should be JSON serializable if we intend to save this in DB
+	Opts    *JobOptions
+	id      int
+	When    time.Time
+}
+
+func (job GenericTimedJob) Type() string {
+	return job.JobType
+}
+
+func (job GenericTimedJob) Payload() any {
+	return job.Data
+}
+
+func (job GenericTimedJob) Options() *JobOptions {
+	return job.Opts
 }
 
 func (job GenericTimedJob) MarkCompleted() error {
-	err := dbHandler.MarkComplete(&job)
+	err := storage.MarkComplete(&job)
 	return err
 }
 
@@ -49,6 +71,6 @@ func (job GenericTimedJob) In() time.Time {
 	return job.When
 }
 
-func (job GenericTimedJob) ID() int {
-	return job.Id
+func (job GenericTimedJob) ID() any {
+	return job.id
 }

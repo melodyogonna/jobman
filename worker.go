@@ -7,7 +7,7 @@ func worker(jobPool JobPool) {
 	for {
 		job := <-jobPool
 		jobType := job.Type()
-		h, ok := handlers[jobType]
+		h, ok := jobHandlers[jobType]
 		if !ok {
 			continue
 		}

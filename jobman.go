@@ -32,9 +32,9 @@ type TimedJob interface {
 	ID() any
 }
 
-// Pooler searches some job storage interface internal to it and forwards every job it finds to the job pool
-type Pooler interface {
-	Pool(p JobPool)
+// Poller searches some job storage interface internal to it and forwards every job it finds to the job pool
+type Poller interface {
+	Poll(p JobPool)
 }
 
 var storage Backend
@@ -127,9 +127,9 @@ func InitWithOptions(options SetupConfig) {
 	initializeNewJobHandlers()
 	if options.Pooler != nil {
 		pooler := *options.Pooler
-		go pooler.Pool(jpool)
+		go pooler.Poll(jpool)
 	} else {
 		pooler := defaultPooler{options.Backend}
-		go pooler.Pool(jpool)
+		go pooler.Poll(jpool)
 	}
 }

@@ -9,7 +9,7 @@ type defaultPooler struct {
 	s Backend
 }
 
-func (pooler *defaultPooler) Pool(p JobPool) {
+func (pooler *defaultPooler) Poll(p JobPool) {
 	for {
 		time.Sleep(time.Minute)
 		log.Print("Looking for jobs")

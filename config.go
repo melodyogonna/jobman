@@ -2,7 +2,7 @@ package jobman
 
 type SetupConfig struct {
 	Backend    Backend
-	Pooler     *Pooler
+	Poller     Poller
 	WorkerSize uint
 }
 

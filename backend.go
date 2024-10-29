@@ -12,7 +12,7 @@ type Backend interface {
 	// Find due jobs.
 	FindDue() ([]TimedJob, error)
 	// Mark a job as complete
-	MarkComplete(job *TimedJob) error
+	MarkComplete(job TimedJob) error
 }
 
 type postgresBackend struct {

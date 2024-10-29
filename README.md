@@ -66,7 +66,7 @@ func main(){
   jobman.InitWithOptions(jobman.SetupConfig{
     Backend: jobman.PostgresBackend(os.Getenv("DATABASE_URL")),
     WorkerSize: 10
-  }) // Initialize jobman with default configurations
+  }) // Initialize jobman with custom configurations
   jobman.RegisterHandlers("sendEmail", HandleEmailJob)
 
   job := jobman.GenericTimedJob{
@@ -82,3 +82,67 @@ func main(){
 ```
 
 Jobman will panic if you tried to make it work on a timed job without setting up a backend.
+
+# Components
+
+My goal with this library is to make something where simple parts compose together intuitively. To that end, Jobman's core has 3 composing parts:
+
+1. Poller
+2. Backend
+3. Job
+
+## Poller
+
+The purpose of a poller is to check some external source for due jobs, then add any jobs found to a job pool. A poller has the interface:
+
+```go
+
+type JobPool chan Job
+
+type Poller interface {
+	Poll(p JobPool)
+}
+```
+
+The default poller checks whatever backend passed during initialization every minute. You can create a custom poller and pass it to job during initialization:
+
+```go
+package main
+
+import (
+  "github.com/melodyogonna/jobman"
+  "time"
+)
+
+// customPoller checks for jobs every hour
+type customPoller struct {
+  storage jobman.Backend
+}
+func (p CustomPoller) Poll(pool jobman.JobPool) {
+  for {
+    time.Sleep(time.Hour)
+    due, err := p.storage.FindDue()
+    if err != nil {
+      // do error handling
+      return
+    }
+    for _, job := range due {
+      pool <- job
+    }
+  }
+}
+
+func GetCustomPoller(backend jobman.Backend) jobman.Pooler {
+  return &customPoller{storage: backend}
+}
+
+func main(){
+  jobman.InitWithOptions(jobman.SetupConfig{
+    Backend: jobman.PostgresBackend(os.Getenv("DATABASE_URL")),
+    WorkerSize: 10,
+    Poller: GetCustomPoller(jobman.PostgresBackend(os.Getenv("DATABASE_URL")))
+  }) // Initialize jobman with custom configurations
+}
+```
+
+Jobman will use the default 1-minute poller if you don't pass any during setup.

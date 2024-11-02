@@ -14,11 +14,13 @@ func worker(jobPool JobPool) {
 		for _, handler := range h {
 			err := handler(job)
 			if err != nil {
+				// TODO: Support error handlers that'll take this error
 				log.Print(err)
 			}
 		}
 		// mark complete if timedJob job
 		if timedJob, ok := job.(TimedJob); ok {
+			// TODO: Determine implementing support for retries
 			timedJob.MarkCompleted()
 		}
 	}

@@ -104,7 +104,7 @@ type Poller interface {
 }
 ```
 
-The default poller checks whatever backend passed during initialization every minute. You can create a custom poller and pass it to job during initialization:
+The default poller checks whatever backend passed during initialization every minute. You can create a custom poller and pass it to Jobman during initialization:
 
 ```go
 package main

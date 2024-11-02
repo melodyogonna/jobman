@@ -13,9 +13,9 @@ func (pooler *defaultPooler) Poll(p JobPool) {
 	for {
 		time.Sleep(time.Minute)
 		log.Print("Looking for jobs")
-		jobs, error := pooler.s.FindDue()
-		if error != nil {
-			return
+		jobs, err := pooler.s.FindDue()
+		if err != nil {
+			log.Fatal(err)
 		}
 		log.Printf("Found %d jobs", len(jobs))
 		for _, job := range jobs {

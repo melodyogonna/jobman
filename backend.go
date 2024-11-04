@@ -1,8 +1,10 @@
 package jobman
 
 import (
-	"database/sql"
+	"context"
 	"log"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // Backend defines an interface for persisting jobs to an external persistent storage.
@@ -16,20 +18,20 @@ type Backend interface {
 }
 
 type postgresBackend struct {
-	dbHandler *sql.DB
+	dbHandler *pgxpool.Pool
 }
 
 func (backend postgresBackend) Save(job *TimedJob) error {
 	d := *job
 	query := `INSERT INTO jobman (job_type, due_on, data) VALUES ($1, $2, $3)`
-	_, err := backend.dbHandler.Exec(query, d.Type(), d.In(), d.Payload())
+	_, err := backend.dbHandler.Exec(context.Background(), query, d.Type(), d.In(), d.Payload())
 	return err
 }
 
 func (backend postgresBackend) FindDue() ([]TimedJob, error) {
 	query := `SELECT id, job_type, due_on, data FROM jobman WHERE due_on <= now() AND completed_on IS NULL`
 	jobs := make([]TimedJob, 0)
-	rows, err := backend.dbHandler.Query(query)
+	rows, err := backend.dbHandler.Query(context.Background(), query)
 	if err != nil {
 		return nil, err
 	}
@@ -49,12 +51,12 @@ func (backend postgresBackend) FindDue() ([]TimedJob, error) {
 
 func (backend postgresBackend) MarkComplete(job TimedJob) error {
 	query := `UPDATE jobman SET completed_on=current_timestamp WHERE id = $1`
-	_, err := backend.dbHandler.Exec(query, job.ID())
+	_, err := backend.dbHandler.Exec(context.Background(), query, job.ID())
 	return err
 }
 
 func PostgresBackend(url string) *postgresBackend {
-	db, err := sql.Open("psql", url)
+	db, err := pgxpool.New(context.Background(), url)
 	if err != nil {
 		log.Fatal(err)
 	}

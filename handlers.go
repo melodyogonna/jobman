@@ -38,6 +38,7 @@ func newTimedJobHandler(job Job) error {
 		log.Fatal("Jobman is not initialized with a backend. Please configure jobman with a backend to enable timed jobs.")
 	}
 
+	// Add job to the pool if it is already ready to be worked on
 	jobDue := timedJob.In()
 	now := time.Now()
 	if !jobDue.After(now) {

@@ -14,7 +14,7 @@ type Job interface {
 	// Retrieve Job data
 	Payload() any
 
-	Options() *JobOptions
+	Options() JobOptions
 }
 
 // TimedJob is a job that shouldn't be worked on immediately. Only Timed jobs will be
@@ -107,7 +107,7 @@ func getJobPool() JobPool {
 }
 
 // Init sets up Jobman with default options
-// namely - 5 workers, no pooler, and no backend.
+// namely - 5 workers, no poller, and no backend.
 // TimedJob is disabled when jobman is initialized with default options. Sending timed jobs
 // will cause a panic.
 func Init() {
@@ -116,6 +116,8 @@ func Init() {
 	initializeNewJobHandlers()
 }
 
+// InitWithOptions sets up Jobman with custom options.
+// If you provide a backend but no pooler then jobman will use the default poller, which polls the storage every minute.
 func InitWithOptions(options SetupConfig) {
 	if options.Backend == nil {
 		log.Fatal("Backend must be provided when initializing job with options")

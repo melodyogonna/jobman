@@ -18,8 +18,8 @@ func (job newJob) Payload() any {
 	return job.data
 }
 
-func (job newJob) Options() *JobOptions {
-	return nil
+func (job newJob) Options() JobOptions {
+	return JobOptions{}
 }
 
 type GenericJob struct {
@@ -58,8 +58,11 @@ func (job GenericTimedJob) Payload() any {
 	return job.Data
 }
 
-func (job GenericTimedJob) Options() *JobOptions {
-	return job.Opts
+func (job GenericTimedJob) Options() JobOptions {
+	if job.Opts != nil {
+		return *job.Opts
+	}
+	return JobOptions{}
 }
 
 func (job GenericTimedJob) MarkCompleted() error {

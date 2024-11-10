@@ -29,12 +29,21 @@ func (backend postgresBackend) Save(job *TimedJob) error {
 }
 
 func (backend postgresBackend) FindDue() ([]TimedJob, error) {
-	query := `SELECT id, job_type, due_on, data FROM jobman WHERE due_on <= now() AND completed_on IS NULL`
-	jobs := make([]TimedJob, 0)
-	rows, err := backend.dbHandler.Query(context.Background(), query)
+	ctx := context.Background()
+	tx, err := backend.dbHandler.Begin(ctx)
 	if err != nil {
 		return nil, err
 	}
+	query := `WITH due_jobs AS (SELECT id, job_type, due_on, data FROM jobman WHERE due_on <= now() AND status = 'PENDING' FOR UPDATE SKIP LOCKED)
+	  UPDATE due_jobs SET status='RUNNING' RETURNING *
+	`
+	jobs := make([]TimedJob, 0)
+	rows, err := backend.dbHandler.Query(context.Background(), query)
+	if err != nil {
+		tx.Rollback(ctx)
+		return nil, err
+	}
+	tx.Commit(ctx)
 	defer rows.Close()
 	for rows.Next() {
 		timedjob := GenericTimedJob{}
@@ -55,10 +64,15 @@ func (backend postgresBackend) MarkComplete(job TimedJob) error {
 	return err
 }
 
+func (backend postgresBackend) setup() {
+}
+
 func PostgresBackend(url string) *postgresBackend {
 	db, err := pgxpool.New(context.Background(), url)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return &postgresBackend{db}
+	backend := &postgresBackend{db}
+	backend.setup()
+	return backend
 }

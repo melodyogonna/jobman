@@ -86,8 +86,7 @@ func WorkOn(job Job) {
 }
 
 // TODO: Determine what to do with errors
-func initWorkers(p JobPool) {
-	workerSize := 5
+func initWorkers(p JobPool, workerSize int) {
 	for i := 0; i < workerSize; i++ {
 		go worker(p)
 	}
@@ -113,7 +112,7 @@ func getJobPool() JobPool {
 // will cause a panic.
 func Init() {
 	jpool := getJobPool()
-	initWorkers(jpool)
+	initWorkers(jpool, 5)
 	initializeNewJobHandlers()
 }
 
@@ -123,10 +122,14 @@ func InitWithOptions(options SetupConfig) {
 	}
 	storage = options.Backend
 	jpool := getJobPool()
-	initWorkers(jpool)
+	if options.WorkerSize > 0 {
+		initWorkers(jpool, int(options.WorkerSize))
+	} else {
+		initWorkers(jpool, 5)
+	}
 	initializeNewJobHandlers()
-	if options.Pooler != nil {
-		pooler := *options.Pooler
+	if options.Poller != nil {
+		pooler := options.Poller
 		go pooler.Poll(jpool)
 	} else {
 		pooler := defaultPooler{options.Backend}

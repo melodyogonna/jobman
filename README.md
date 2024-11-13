@@ -146,3 +146,12 @@ func main(){
 ```
 
 Jobman will use the default 1-minute poller if you don't pass any during setup.
+
+# Roadmap
+
+Some ideas about the things I intend to implement in the future
+
+- [ ] Job retries
+- [ ] Redis backend
+- [ ] Nats backend
+- [ ] Action hooks - To monitor different states of a job

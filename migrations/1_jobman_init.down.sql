@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS jobman_L1nsxfVZfj;

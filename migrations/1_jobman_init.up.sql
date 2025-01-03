@@ -4,6 +4,7 @@ CREATE SCHEMA IF NOT EXISTS jobman_L1nsxfVZfj;
     id serial PRIMARY KEY,
     job_type VARCHAR(255) NOT NULL,
     data JSONB,
+    opts JSONB,
     due_on TIMESTAMP NOT NULL,
     completed_on TIMESTAMP,
     job_status jobman_L1nsxfVZfj.jobman_status DEFAULT 'PENDING',

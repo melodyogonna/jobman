@@ -39,8 +39,8 @@ func (job GenericJob) Payload() any {
 	return job.Data
 }
 
-func (job GenericJob) Options() *JobOptions {
-	return job.Opts
+func (job GenericJob) Options() JobOptions {
+	return *job.Opts
 }
 
 // GenericTimedJob is a default job that shouldn't get handled immediately. We need to enforce persistence when dealing with Timed jobs, so

@@ -15,7 +15,7 @@ func TestJobIsSaved(t *testing.T) {
 	job := jobman.GenericTimedJob{JobType: "Test", When: time.Now().Add(time.Hour * 2), Data: struct{ Num int }{Num: 10}}
 	err := b.Save(context.Background(), job)
 	if err != nil {
-		t.Fatal(err)
+		t.Error(err)
 	}
 }
 
@@ -34,5 +34,16 @@ func TestDueJobsFound(t *testing.T) {
 
 	if len(due) < 1 {
 		t.Error("Due jobs not found")
+	}
+}
+
+func BenchmarkPostgresSave(b *testing.B) {
+	backend := jobman.PostgresBackend(dbURL)
+	job := jobman.GenericTimedJob{JobType: "Test", When: time.Now().Add(time.Hour * 2), Data: struct{ Num int }{Num: 10}}
+	for range b.N {
+		err := backend.Save(context.Background(), job)
+		if err != nil {
+			b.Error(err)
+		}
 	}
 }

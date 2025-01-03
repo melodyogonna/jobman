@@ -1,6 +1,9 @@
 package jobman
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 var NEWJOBTYPE = "NEWJOB"
 
@@ -66,7 +69,7 @@ func (job GenericTimedJob) Options() JobOptions {
 }
 
 func (job GenericTimedJob) MarkCompleted() error {
-	err := storage.MarkComplete(&job)
+	err := storage.MarkComplete(context.TODO(), &job)
 	return err
 }
 

@@ -1,6 +1,7 @@
 package jobman
 
 import (
+	"context"
 	"log"
 	"time"
 )
@@ -13,7 +14,7 @@ func (pooler *defaultPooler) Poll(p JobPool) {
 	for {
 		time.Sleep(time.Minute)
 		log.Print("Looking for jobs")
-		jobs, err := pooler.s.FindDue()
+		jobs, err := pooler.s.FindDue(context.TODO())
 		if err != nil {
 			log.Fatal(err)
 		}

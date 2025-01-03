@@ -1,6 +1,7 @@
 package jobman
 
 import (
+	"context"
 	"errors"
 	"log"
 	"time"
@@ -55,7 +56,7 @@ func newTimedJobHandler(job Job) error {
 }
 
 func saveJob(job TimedJob) error {
-	err := storage.Save(&job)
+	err := storage.Save(context.TODO(), job)
 	if err != nil {
 		return err
 	}

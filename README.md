@@ -155,3 +155,4 @@ Some ideas about the things I intend to implement in the future
 - [ ] Redis backend
 - [ ] Nats backend
 - [ ] Action hooks - To monitor different states of a job
+- [ ] More tests

@@ -40,7 +40,7 @@ func (backend postgresBackend) FindDue(ctx context.Context) ([]TimedJob, error) 
 	for rows.Next() {
 		timedjob := GenericTimedJob{}
 		var payload *any
-		err := rows.Scan(&timedjob.id, &timedjob.JobType, &timedjob.When, &payload)
+		err := rows.Scan(&timedjob.Id, &timedjob.JobType, &timedjob.When, &payload)
 		if err != nil {
 			return nil, err
 		}

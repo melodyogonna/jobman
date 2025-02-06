@@ -9,6 +9,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: release
-        run: gh release create ${{ github.ref }} --autogenerate
+        run: gh release create ${{ github.ref }} --generate-notes
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -49,7 +49,7 @@ type GenericTimedJob struct {
 	JobType string
 	Data    any // This should be JSON serializable if we intend to save this in DB
 	Opts    *JobOptions
-	id      int
+	Id      int
 	When    time.Time
 }
 
@@ -78,5 +78,5 @@ func (job GenericTimedJob) In() time.Time {
 }
 
 func (job GenericTimedJob) ID() any {
-	return job.id
+	return job.Id
 }

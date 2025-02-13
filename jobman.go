@@ -94,8 +94,7 @@ func initWorkers(p JobPool, workerSize int) {
 }
 
 func initializeNewJobHandlers() {
-	RegisterHandlers(newjobtype, newJobHandler)
-	RegisterHandlers(newjobtype, newTimedJobHandler)
+	RegisterHandlers(newjobtype, newJobHandler, newTimedJobHandler)
 }
 
 func getJobPool() JobPool {

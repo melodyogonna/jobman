@@ -15,8 +15,10 @@ func worker(jobPool JobPool) {
 		log.Printf("worker: %s - handling job with type: %s", workerID, jobType)
 		h, ok := jobHandlers[jobType]
 		if !ok {
+			log.Printf("no handler registered for job type: %s", jobType)
 			continue
 		}
+		log.Printf("%d handlers registered for job type: %s. Forwarding ...", len(h), jobType)
 		for _, handler := range h {
 			err := handler(job)
 			if err != nil {

@@ -16,7 +16,7 @@ func TestMigrationIsInitialized(t *testing.T) {
 		t.Errorf("Unable to init migration %s", err)
 	}
 
-	tableVerificationQuery := `SELECT EXISTS(SELECT FROM pg_tables WHERE schemaname = 'jobman_L1nsxfVZfj' AND tablename='jobman') as e`
+	tableVerificationQuery := `SELECT EXISTS(SELECT FROM pg_tables WHERE schemaname = 'jobman_l1nsxfvzfj' AND tablename='jobman') as e`
 	var tableExist bool
 	db, err := pgx.Connect(context.Background(), dbURL)
 	if err != nil {

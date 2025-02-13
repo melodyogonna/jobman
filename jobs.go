@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-var NEWJOBTYPE = "NEWJOB"
+var newjobtype = "NEWJOB"
 
 // newJob is a private job. It is added to the job pool when a new job is registered, it'll be forwarded to new job handlers.
 type newJob struct {
@@ -26,9 +26,9 @@ func (job newJob) Options() JobOptions {
 }
 
 type GenericJob struct {
-	JobType string
-	Data    any
-	Opts    *JobOptions
+	JobType string      `json:"job_type"`
+	Data    any         `json:"data"`
+	Opts    *JobOptions `json:"opts"`
 }
 
 func (job GenericJob) Type() string {
@@ -46,11 +46,11 @@ func (job GenericJob) Options() JobOptions {
 // GenericTimedJob is a default job that shouldn't get handled immediately. We need to enforce persistence when dealing with Timed jobs, so
 // It requires a way to mark it as complete.
 type GenericTimedJob struct {
-	JobType string
-	Data    any // This should be JSON serializable if we intend to save this in DB
-	Opts    *JobOptions
-	Id      int
-	When    time.Time
+	JobType string      `json:"job_type"`
+	Data    any         `json:"data"` // This should be JSON serializable if we intend to save this in DB
+	Opts    *JobOptions `json:"opts"`
+	Id      int         `json:"id"`
+	When    time.Time   `json:"when"`
 }
 
 func (job GenericTimedJob) Type() string {

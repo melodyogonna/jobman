@@ -49,8 +49,8 @@ var jobPool JobPool
 
 var jobHandlers map[string][]handler = make(map[string][]handler)
 
-// RegisterHandler registers a function that should be called when job of jobType needs to be processed.
-func RegisterHandler(jobType string, handlers ...handler) {
+// RegisterHandlers registers a function that should be called when job of jobType needs to be processed.
+func RegisterHandlers(jobType string, handlers ...handler) {
 	for _, h := range handlers {
 
 		if handlerExistsForJob(jobType, h) {
@@ -80,7 +80,7 @@ func handlerExistsForJob(job string, h handler) bool {
 
 // WorkOn gives Jobman a job to work on. If the Job is a TimedJob it'll be saved to the database, otherwise it'll be handled immediately
 func WorkOn(job Job) {
-	j := newJob{t: NEWJOBTYPE, data: job}
+	j := newJob{t: newjobtype, data: job}
 	jobpool := getJobPool()
 	jobpool <- j
 }
@@ -93,8 +93,8 @@ func initWorkers(p JobPool, workerSize int) {
 }
 
 func initializeNewJobHandlers() {
-	RegisterHandler(NEWJOBTYPE, newJobHandler)
-	RegisterHandler(NEWJOBTYPE, newTimedJobHandler)
+	RegisterHandlers(newjobtype, newJobHandler)
+	RegisterHandlers(newjobtype, newTimedJobHandler)
 }
 
 func getJobPool() JobPool {

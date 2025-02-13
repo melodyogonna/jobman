@@ -2,6 +2,7 @@ package jobman
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 
@@ -9,14 +10,14 @@ import (
 	"github.com/melodyogonna/jobman/internal/migration"
 )
 
-var schemaname string = "jobman_L1nsxfVZfj"
+var schemaname string = "jobman_l1nsxfvzfj"
 
 type postgresBackend struct {
 	dbHandler *pgxpool.Pool
 }
 
 func (backend postgresBackend) Save(ctx context.Context, job TimedJob) error {
-	query := `INSERT INTO %s.jobman (job_type, due_on, data, opts) VALUES ($1, $2, $3, %4)`
+	query := `INSERT INTO %s.jobman (job_type, due_on, data, opts) VALUES ($1, $2, $3, $4)`
 	_, err := backend.dbHandler.Exec(context.Background(), fmt.Sprintf(query, schemaname), job.Type(), job.In(), job.Payload(), job.Options())
 	return err
 }
@@ -26,11 +27,11 @@ func (backend postgresBackend) FindDue(ctx context.Context) ([]TimedJob, error) 
 	if err != nil {
 		return nil, err
 	}
-	query := `WITH due_jobs AS (SELECT id, job_type, due_on, data FROM %s.jobman WHERE due_on <= now() AND status = 'PENDING' FOR UPDATE SKIP LOCKED)
-	  UPDATE due_jobs SET status='RUNNING' RETURNING *
+	query := `WITH due_jobs AS (SELECT id, job_type, due_on, data FROM %s.jobman WHERE due_on <= now() AND job_status = 'PENDING' FOR UPDATE SKIP LOCKED)
+	          UPDATE %s.jobman SET job_status='RUNNING' WHERE id IN (SELECT id FROM due_jobs) RETURNING *
 	`
 	jobs := make([]TimedJob, 0)
-	rows, err := backend.dbHandler.Query(context.Background(), fmt.Sprintf(query, schemaname))
+	rows, err := backend.dbHandler.Query(context.Background(), fmt.Sprintf(query, schemaname, schemaname))
 	if err != nil {
 		tx.Rollback(ctx)
 		return nil, err
@@ -39,12 +40,12 @@ func (backend postgresBackend) FindDue(ctx context.Context) ([]TimedJob, error) 
 	defer rows.Close()
 	for rows.Next() {
 		timedjob := GenericTimedJob{}
-		var payload *any
+		var payload json.RawMessage
 		err := rows.Scan(&timedjob.Id, &timedjob.JobType, &timedjob.When, &payload)
 		if err != nil {
 			return nil, err
 		}
-		timedjob.Data = *payload
+		timedjob.Data = payload
 		jobs = append(jobs, timedjob)
 	}
 	return jobs, nil

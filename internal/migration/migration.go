@@ -2,7 +2,6 @@ package migration
 
 import (
 	"errors"
-	"log"
 
 	"github.com/golang-migrate/migrate/v4"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
@@ -14,25 +13,31 @@ func Init(dbURL string) error {
 	if err != nil {
 		// We don't consider no change as an error
 		if errors.Is(err, migrate.ErrNoChange) || errors.Is(err, migrate.ErrNilVersion) {
-			log.Print(err)
 			return nil
 		}
 		return err
 	}
 
-	return m.Up()
+	err = m.Up()
+	if err != nil {
+		// We don't consider no change as an error
+		if errors.Is(err, migrate.ErrNoChange) || errors.Is(err, migrate.ErrNilVersion) {
+			return nil
+		}
+		return err
+	}
+	return nil
 }
 
 func DeInit(dbURL string) error {
 	m, err := migrate.New("github://melodyogonna/jobman/migrations", dbURL)
 	if err != nil {
-		// We don't consider no change as an error
-		if errors.Is(err, migrate.ErrNoChange) || errors.Is(err, migrate.ErrNilVersion) {
-			log.Print(err)
-			return nil
-		}
 		return err
 	}
 
-	return m.Down()
+	err = m.Down()
+	if err != nil {
+		return err
+	}
+	return nil
 }

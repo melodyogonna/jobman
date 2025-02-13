@@ -10,8 +10,14 @@ import (
 
 var dbURL = "postgres://postgres:postgres@localhost:5433/postgres?sslmode=disable"
 
+func setupWithOptions(t *testing.T, o jobman.SetupConfig) {
+	t.Helper()
+	jobman.InitWithOptions(o)
+}
+
 func TestJobIsSaved(t *testing.T) {
 	b := jobman.PostgresBackend(dbURL)
+	setupWithOptions(t, jobman.SetupConfig{Backend: b})
 	job := jobman.GenericTimedJob{JobType: "Test", When: time.Now().Add(time.Hour * 2), Data: struct{ Num int }{Num: 10}}
 	err := b.Save(context.Background(), job)
 	if err != nil {
@@ -21,6 +27,7 @@ func TestJobIsSaved(t *testing.T) {
 
 func TestDueJobsFound(t *testing.T) {
 	b := jobman.PostgresBackend(dbURL)
+	setupWithOptions(t, jobman.SetupConfig{Backend: b})
 	job := jobman.GenericTimedJob{JobType: "Test", When: time.Now()}
 	err := b.Save(context.Background(), job)
 	if err != nil {

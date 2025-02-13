@@ -7,7 +7,7 @@ type SetupConfig struct {
 }
 
 type JobOptions struct {
-	Retry bool
+	Retry bool `json:"retry"`
 }
 
 type RetryOptions struct{}

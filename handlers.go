@@ -8,30 +8,30 @@ import (
 )
 
 func newJobHandler(job Job) error {
-	newJob, ok := job.(newJob)
+	j, ok := job.(newJob)
 	if !ok {
-		return errors.New("Not a new job")
+		return errors.New("not a new job")
 	}
 
 	// Determine whether this job is a timed job. Don't proceed if it is, we have a timedJob handler
-	if _, ok := newJob.Payload().(TimedJob); ok {
+	if _, ok := j.Payload().(TimedJob); ok {
 		return nil
 	}
 
 	jobPool := getJobPool()
-	jobPool <- newJob.data
+	jobPool <- j.data
 
 	return nil
 }
 
 func newTimedJobHandler(job Job) error {
-	newJob, ok := job.(newJob)
+	j, ok := job.(newJob)
 	if !ok {
-		return errors.New("Not a new job")
+		return errors.New("not a new job")
 	}
 
 	// Determine whether this job is a timed job. Don't proceed if it is not
-	timedJob, ok := newJob.Payload().(TimedJob)
+	timedJob, ok := j.Payload().(TimedJob)
 	if !ok {
 		return nil
 	}

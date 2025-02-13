@@ -80,6 +80,7 @@ func handlerExistsForJob(job string, h handler) bool {
 
 // WorkOn gives Jobman a job to work on. If the Job is a TimedJob it'll be saved to the database, otherwise it'll be handled immediately
 func WorkOn(job Job) {
+	log.Printf("Got new job. type: %s", job.Type())
 	j := newJob{t: newjobtype, data: job}
 	jobpool := getJobPool()
 	jobpool <- j

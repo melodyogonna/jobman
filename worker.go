@@ -1,12 +1,18 @@
 package jobman
 
-import "log"
+import (
+	"log"
+
+	"github.com/google/uuid"
+)
 
 // Worker receives jobs from job pool channel and passes it over to handlers subscribed to such pools.
 func worker(jobPool JobPool) {
+	workerID := uuid.New().String()
 	for {
 		job := <-jobPool
 		jobType := job.Type()
+		log.Printf("worker: %s - handling job with type: %s", workerID, jobType)
 		h, ok := jobHandlers[jobType]
 		if !ok {
 			continue

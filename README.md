@@ -2,6 +2,12 @@
 
 Easy and powerful background jobs for Go applications.
 
+# install
+
+```sh
+go get -u github.com/melodyogonna/jobman
+```
+
 # Usage
 
 You can start using Jobman in two ways.
@@ -19,8 +25,14 @@ import (
   "log"
 )
 
+type EmailData struct {
+      email string
+      templateId string
+}
+
 func HandleEmailJob(job jobman.Job) error {
   log.Print("Email job handler called")
+  data = job.Payload().(EmailData)
   // ...handle sending email
   return nil
 }
@@ -31,13 +43,19 @@ func main(){
 
   job := jobman.GenericJob{
     JobType: "sendEmail",
-    Data: struct{
-      email string
-      templateId string
-    }{email:"johndoe@email.com", templateId: "testEmailTemplateId"}
+    Data: EmailData{email:"johndoe@email.com", templateId: "testEmailTemplateId"}
   }
   jobman.WorkOn(job)
 }
+```
+
+When a job is added to Jobman's job pool it'll be logged. For our example above, something like this is expected:
+
+```sh
+2025/02/13 15:19:15 worker: f222b4ab-1676-4245-bddd-30f06b902234 - handling job with type: NEWJOB                                             [0/8052]
+2025/02/13 15:19:15 2 handlers registered for job type: NEWJOB. Forwarding ...
+2025/02/13 15:19:15 worker: bddfa149-ab61-4dcb-a100-3b023be30996 - handling job with type: sendEmail
+2025/02/13 15:19:15 1 handlers registered for job type: SubmissionContentApproved. Forwarding ...
 ```
 
 ## Using jobman with custom options
@@ -72,16 +90,17 @@ func main(){
   job := jobman.GenericTimedJob{
     JobType: "sendEmail",
     When: time.Now().Add(time.HOUR * 24)
-    Data: struct{
-      email string
-      templateId string
-    }{email:"johndoe@email.com", templateId: "testEmailTemplateId"}
+    Data: EmailData{email:"johndoe@email.com", templateId: "testEmailTemplateId"}
   }
   jobman.WorkOn(job)
 }
 ```
 
 Jobman will panic if you tried to make it work on a timed job without setting up a backend.
+
+### Timed Jobs
+
+Timed jobs have timing attached, jobman will save these jobs using the specified backend.
 
 # Components
 

@@ -23,20 +23,13 @@ func (backend postgresBackend) Save(ctx context.Context, job TimedJob) error {
 }
 
 func (backend postgresBackend) FindDue(ctx context.Context) ([]TimedJob, error) {
-	tx, err := backend.dbHandler.Begin(ctx)
-	if err != nil {
-		return nil, err
-	}
 	query := `WITH due_jobs AS (SELECT id, job_type, due_on, data FROM %s.jobman WHERE due_on <= now() AND job_status = 'PENDING' FOR UPDATE SKIP LOCKED)
 	          UPDATE %s.jobman SET job_status='RUNNING' WHERE id IN (SELECT id FROM due_jobs) RETURNING id, job_type, due_on, data, opts
 	`
 	jobs := make([]TimedJob, 0)
 	rows, err := backend.dbHandler.Query(context.Background(), fmt.Sprintf(query, schemaname, schemaname))
 	if err != nil {
-		tx.Rollback(ctx)
-		return nil, err
 	}
-	tx.Commit(ctx)
 	defer rows.Close()
 	for rows.Next() {
 		timedjob := GenericTimedJob{}
